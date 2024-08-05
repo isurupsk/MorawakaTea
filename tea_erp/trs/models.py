@@ -1,3 +1,5 @@
+
+
 from django.db import models
 
 class Bank(models.Model):
@@ -14,38 +16,12 @@ class Supplier(models.Model):
     record_id = models.CharField(max_length=255)  
     supplier_name = models.CharField(max_length=255)
     date = models.DateField() 
-    full_quantity = models.DecimalField(max_digits=10, decimal_places=2)  
-    leaves_quantity = models.DecimalField(max_digits=10, decimal_places=2)  
-    gold_leaves = models.DecimalField(max_digits=10, decimal_places=2)  # Adjust as needed
-    empty_cases = models.IntegerField()  # Assuming empty_cases is an integer
-    water = models.DecimalField(max_digits=10, decimal_places=2)  # Adjust as needed
-    matured_leaves = models.DecimalField(max_digits=10, decimal_places=2)  # Adjust as needed
-    boiled_leaves = models.DecimalField(max_digits=10, decimal_places=2)  # Adjust as needed
-    good_leaves = models.DecimalField(max_digits=10, decimal_places=2)  
-    supervision = models.ForeignKey('Supervision', on_delete=models.CASCADE)  
-    officer = models.ForeignKey('Officer', on_delete=models.CASCADE)  
     contact_info = models.CharField(max_length=255)
     address = models.TextField()
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.supplier_name
-
-class Officer(models.Model):
-    Officer_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-
-
-    def __str__(self):
-        return self.name
-
-class Supervision(models.Model):
-    supervision_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-
-
-    def __str__(self):
-        return self.name
 
 class Root(models.Model):
     root_id = models.AutoField(primary_key=True)
@@ -55,10 +31,41 @@ class Root(models.Model):
     def __str__(self):
         return self.root_name
 
+class Officer(models.Model):
+    officer_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
 
-class Transaction(models.Model):
-    transaction_id = models.AutoField(primary_key=True)
-    customer_id = models.IntegerField()
+    def __str__(self):
+        return self.name
+
+class Supervision(models.Model):
+    supervision_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+class DailyGreenLeaf(models.Model):
+    daily_green_leaf_id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    root = models.ForeignKey(Root, on_delete=models.CASCADE)
+    date = models.DateField() 
+    full_quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    leaves_quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    gold_leaves = models.DecimalField(max_digits=10, decimal_places=2)
+    empty_cases = models.IntegerField()
+    water = models.DecimalField(max_digits=10, decimal_places=2)
+    matured_leaves = models.DecimalField(max_digits=10, decimal_places=2)
+    boiled_leaves = models.DecimalField(max_digits=10, decimal_places=2)
+    good_leaves = models.DecimalField(max_digits=10, decimal_places=2)
+    supervision = models.ForeignKey(Supervision, on_delete=models.CASCADE)
+    officer = models.ForeignKey(Officer, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Daily Green Leaf {self.daily_green_leaf_id}'
+
+class SupplierPayment(models.Model):
+    supplier_payment_id = models.AutoField(primary_key=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     root = models.ForeignKey(Root, on_delete=models.CASCADE)
     transaction_date = models.DateTimeField()
@@ -66,4 +73,54 @@ class Transaction(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f'Transaction {self.transaction_id}'
+        return f'Transaction {self.supplier_payment_id}'
+
+# New Models
+class Loan(models.Model):
+    loan_id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    date = models.DateField()
+    loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    root = models.ForeignKey(Root, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Loan {self.loan_id}'
+
+class AdvancePayment(models.Model):
+    advance_payment_id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    date = models.DateField()
+    advance_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    root = models.ForeignKey(Root, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Advance Payment {self.advance_payment_id}'
+
+class LoanRepayment(models.Model):
+    loan_repayment_id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    root = models.ForeignKey(Root, on_delete=models.CASCADE)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f'Loan Repayment {self.loan_repayment_id}'
+
+class RootTransportAgent(models.Model):
+    root_transport_agent_id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    agent_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'Transport Agent {self.agent_name}'
+
+class RootTransport(models.Model):
+    root_transport_id = models.AutoField(primary_key=True)
+    root = models.ForeignKey(Root, on_delete=models.CASCADE)
+    transport_agent = models.ForeignKey(RootTransportAgent, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Root Transport {self.root_transport_id}'
+
